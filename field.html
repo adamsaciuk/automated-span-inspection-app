@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Span Field Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="field.webmanifest">
+<meta name="theme-color" content="#0b0e14">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="design-system/styles.css">
+<link rel="stylesheet" href="app/app.css">
+<link rel="stylesheet" href="app/field.css">
+</head>
+<body class="field">
+<header>
+  <a class="logo" href="https://www.droneharmony.com" target="_blank" rel="noopener" title="Drone Harmony"><img src="brand/dh-wordmark-pos.png" alt="drone harmony"></a>
+  <span class="brand">SPAN FIELD TRACKER</span>
+  <span class="by"><span class="ver" id="ver"></span></span>
+  <nav class="modeswitch"><a href="index.html">SIMULATOR</a><a class="on" href="field.html">FIELD</a></nav>
+</header>
+<nav class="tabs">
+  <button id="tab-circuits">CIRCUITS <span class="n" id="n-circuits">0</span></button>
+  <button id="tab-spans">SPANS <span class="n" id="n-spans">0</span></button>
+  <button id="tab-missions">MISSIONS <span class="n" id="n-missions">0</span></button>
+  <button id="tab-preview">PREVIEW</button>
+  <button id="tab-admin">ADMIN</button>
+</nav>
+<div class="searchbar"><input type="search" id="q" placeholder="circuit, tower name or span number" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"><button id="q-clear" hidden title="clear">×</button></div>
+<section class="screen" id="screen-search" hidden>
+  <div id="search-list"></div>
+</section>
+<section class="screen" id="screen-circuits">
+  <div class="bar"><button id="btn-import">IMPORT BUNDLE</button><input type="file" id="file-bundle" accept=".json,application/json" multiple hidden><span class="note" id="import-note" hidden></span></div>
+  <div id="circuit-list"></div>
+</section>
+<section class="screen" id="screen-spans" hidden>
+  <div class="bar"><button id="btn-allspans" class="chip">ALL SPANS</button><button id="btn-onecirc" class="chip" hidden>ALL SHOWN CIRCUITS</button></div>
+  <div id="span-list"></div>
+</section>
+<section class="screen" id="screen-missions" hidden>
+  <div id="mission-list"><div class="empty"><b>NO SPAN CHOSEN</b>Pick a span on the SPANS screen.</div></div>
+</section>
+<section class="screen" id="screen-preview" hidden>
+  <div class="empty"><b>PREVIEW</b>The 3D flight of the chosen mission, launch to landing, with the payload view (step 5).</div>
+</section>
+<section class="screen" id="screen-admin" hidden>
+  <div class="empty"><b>ADMIN</b>Pilot and device, RECOVER, CLEAR PROGRESS, PURGE, storage, versions (step 8).</div>
+</section>
+<div class="updnote" id="update-note" hidden></div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="vendor/three.min.js"></script>
+<script src="vendor/lines/LineSegmentsGeometry.js"></script>
+<script src="vendor/lines/LineMaterial.js"></script>
+<script src="vendor/lines/LineSegments2.js"></script>
+<script src="app/store.js"></script>
+<script src="app/kmz.js"></script>
+<script src="app/geo.js"></script>
+<script src="app/tower3d.js"></script>
+<script src="app/camera.js"></script>
+<script src="app/coverage.js"></script>
+<script src="app/flight.js"></script>
+<script src="app/assign.js"></script>
+<script src="app/validate.js"></script>
+<script src="app/fielddb.js"></script>
+<script src="app/search.js"></script>
+<script src="app/field.js"></script>
+<script src="app/pwa.js"></script>
+</body>
+</html>

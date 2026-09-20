@@ -1,0 +1,17 @@
+{
+  "name": "Span Field Tracker",
+  "short_name": "Span Tracker",
+  "description": "The pilot's field tracker for transmission-line span missions: what is in the controller, what the drone will do, what is done. By Drone Harmony.",
+  "id": "/field",
+  "start_url": "./field.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#f2f2f3",
+  "theme_color": "#0b0e14",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

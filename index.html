@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Automated Span Inspection</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b0e14">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="design-system/styles.css">
+<link rel="stylesheet" href="app/app.css">
+</head>
+<body>
+<header>
+  <a class="logo" href="https://www.droneharmony.com" target="_blank" rel="noopener" title="Drone Harmony"><img src="brand/dh-wordmark-pos.png" alt="drone harmony"></a>
+  <span class="brand">AUTOMATED SPAN INSPECTION</span>
+  <span class="by">MISSION SIMULATOR <span class="ver" id="ver"></span></span>
+  <nav class="modeswitch"><a class="on" href="index.html">SIMULATOR</a><a href="field.html">FIELD</a></nav>
+  <span class="status" id="status">LOAD A CIRCUIT</span>
+</header>
+
+<aside class="panel">
+  <section>
+    <h2>CIRCUITS <span class="n" id="circuit-n"></span></h2>
+    <div class="row">
+      <button id="btn-circuit">LOAD CIRCUIT</button>
+      <input type="file" id="file-circuit" accept=".kmz,.kml,.zip" hidden>
+    </div>
+    <div class="list" id="circuit-list"></div>
+    <div class="small err" id="circuit-err" hidden></div>
+  </section>
+
+  <section>
+    <h2>MISSIONS <span class="n" id="group-n"></span></h2>
+    <div class="row">
+      <button id="btn-group">LOAD GROUP</button>
+      <button id="btn-folder">LOAD FOLDER</button>
+      <button id="btn-group-clear" class="sm" title="forget every loaded mission">CLEAR</button>
+      <input type="file" id="file-folder" webkitdirectory multiple hidden>
+      <input type="file" id="file-group" accept=".zip,.kmz" hidden>
+    </div>
+    <div class="meta" id="group-meta"></div>
+  </section>
+
+  <section>
+    <h2>SPANS <span class="n" id="spans-n"></span></h2>
+    <div class="row"><input type="text" id="span-filter" placeholder="filter by tower or span number"></div>
+    <div class="row seg"><button id="span-show-all" class="sm on">ALL</button><button id="span-show-done" class="sm">DONE</button><button id="span-show-todo" class="sm">TO DO</button></div>
+    <div class="list" id="span-list"></div>
+  </section>
+
+  <section>
+    <h2>MISSIONS ON THIS SPAN <span class="n" id="missions-n"></span></h2>
+    <div class="row">
+      <button id="btn-all" class="sm">ALL JOINED · A1 B1 A2 B2</button>
+      <button id="btn-none" class="sm">NONE</button>
+    </div>
+    <div id="mission-rows"></div>
+    <div class="small" id="mission-deleted" hidden></div>
+    <div class="fcheck" id="focus-check" hidden></div>
+  </section>
+
+
+  <section>
+    <h2>PAYLOAD OPTICS <span class="n" id="cam-n"></span></h2>
+    <div class="row">
+      <label class="f">CAMERA <select id="cam-body"><option value="gs120">iXM-GS120</option><option value="ixm100">iXM-100</option></select></label>
+      <label class="f">f/ <input type="number" id="cam-fnum" value="18" min="2" max="32" step="1"></label>
+      <label class="f">SHARP TO <input type="number" id="cam-coc" value="1" min="0.5" max="3" step="0.5"> px <span class="small" id="cam-coc-mm"></span></label>
+      <label class="f">GSD ≤ <input type="number" id="cam-gsd" value="1.0" min="0.2" max="5" step="0.1"> mm</label>
+    </div>
+    <div class="small" id="cam-fixed"></div>
+    <div class="meta" id="cam-meta"></div>
+  </section>
+
+  <section>
+    <h2>LAUNCH</h2>
+    <div class="row">
+      <button id="btn-pick" title="click the ground in the scene to place the launch zone">SELECT LZ</button>
+      <button id="btn-auto" class="sm" title="launch zone 40 m off the start tower, away from the conductors">AUTO LZ</button>
+      <button id="btn-fly" class="primary" disabled>LAUNCH MISSION</button>
+    </div>
+    <div class="meta" id="launch-meta"></div>
+    <div class="row"><label class="f"><input type="checkbox" id="cfg-one"> ONE MISSION AT A TIME</label></div>
+    <div class="meta" id="plan-meta"></div>
+    <div class="chapters" id="chapters"></div>
+    <details class="more">
+      <summary>FLIGHT SETTINGS</summary>
+      <div class="row">
+        <label class="f">SAFE HEIGHT ABOVE TOWER <input type="number" id="cfg-over" value="30" min="5" max="120" step="5"> m</label>
+      </div>
+      <div class="row">
+        <label class="f">MANUAL SPEED <input type="number" id="cfg-vt" value="5" min="1" max="15" step="0.5"> m/s</label>
+        <label class="f">CLIMB <input type="number" id="cfg-vc" value="3" min="0.5" max="6" step="0.5"> m/s</label>
+      </div>
+      <div class="row">
+        <label class="f"><input type="checkbox" id="cfg-check"> GIMBAL CHECK AT THE TOWER</label>
+      </div>
+    </details>
+  </section>
+</aside>
+
+<main class="stage">
+  <canvas id="gl"></canvas>
+  <div class="hud" id="hud"></div>
+  <div class="hint" id="hint" hidden>CLICK THE GROUND TO PLACE THE LZ · ESC CANCELS</div>
+  <div class="map" id="map-panel" hidden><div id="map"></div></div>
+  <div class="tilecredit" id="tile-credit" hidden></div>
+  <div class="updnote" id="update-note" hidden></div>
+  <div class="tools">
+    <div class="menu" id="menu-view"><button class="sm mt" title="what the 3D view shows">VIEW ▾</button><div class="items">
+      <button id="btn-map" class="sm">MAP</button>
+      <button id="btn-ground" class="sm" title="map tiles as the ground of the 3D world (online)">GROUND</button>
+      <button id="btn-relief" class="sm" title="terrain relief under the ground tiles, fitted to the tower footings (online, AWS terrain tiles)">RELIEF</button>
+      <button id="btn-chase" class="sm">CHASE</button>
+      <button id="btn-fpv" class="sm on">PAYLOAD · S</button>
+      <button id="btn-scale" class="sm">DRONE ×3</button>
+      <button id="btn-refocus" class="sm">SPAN VIEW</button>
+      <button id="btn-details" class="sm">DETAILS</button>
+    </div></div>
+    <div class="menu" id="menu-photos"><button class="sm mt" title="the photos on the ground and the findings">PHOTOS ▾</button><div class="items">
+      <button id="btn-rolls-vis" class="sm on">ROLLS</button>
+      <button id="btn-select-all" class="sm">SELECT ALL PHOTOS</button>
+      <button id="btn-findings" class="sm">FINDINGS</button>
+      <button id="btn-truth" class="sm">TRUTH</button>
+      <button id="btn-rolls" class="sm">CLEAR ROLLS</button>
+    </div></div>
+    <button id="btn-review" class="sm">REVIEW</button>
+    <div class="menu" id="menu-data"><button class="sm mt danger" title="forget data">DATA ▾</button><div class="items">
+      <button id="btn-reset-all" class="sm danger">CLEAR DATA</button>
+      <button id="btn-full-reset" class="sm danger">FULL RESET</button>
+    </div></div>
+  </div>
+  <div class="kpis" id="kpis" hidden>
+    <div class="kpi" id="kpi-cov"><div class="k">SPAN COVERAGE</div><div class="v" id="kpi-cov-v">0.0%</div><div class="s" id="kpi-cov-s"></div><div class="bar"><i id="kpi-cov-b"></i></div></div>
+    <div class="kpi" id="kpi-img"><div class="k">IMAGE DATASET</div><div class="v" id="kpi-img-v">0</div><div class="s" id="kpi-img-s"></div><div class="bar"><i id="kpi-img-b"></i></div></div>
+  </div>
+  <div class="pick" id="pick" hidden>
+    <div class="pick-card">
+      <div class="pick-h" id="pick-h">SELECT THE NEXT MISSION</div>
+      <div class="pick-sub" id="pick-sub">The aircraft is holding. Choose what it flies next.</div>
+      <div class="pick-rows" id="pick-rows"></div>
+      <div class="row" style="margin-top:10px"><button id="pick-home" class="sm">RETURN HOME &amp; LAND</button><button id="pick-cancel" class="sm">NOT NOW</button></div>
+    </div>
+  </div>
+  <div class="fpvlabel" id="fpvlabel" hidden><span id="fpv-cam">PAYLOAD · WIDE</span><span class="rec" id="fpv-osd"></span></div>
+  <div class="review" id="review" hidden>
+    <div class="rv-main">
+      <div class="rv-imgwrap" id="rv-imgwrap">
+        <canvas id="rv-big" width="800" height="600"></canvas>
+        <canvas id="rv-ov" width="800" height="600"></canvas>
+      </div>
+      <div class="rv-empty" id="rv-empty">Pick a photo in the navigator below, or on the ground in the 3D view.</div>
+      <div class="rv-info" id="rv-info"></div>
+      <div class="rv-tools">
+        <button id="an-back" class="sm">◀ BACK TO 3D</button>
+        <button id="an-splice" class="sm an-splice">SPLICE</button>
+        <button id="an-damage" class="sm an-damage">DAMAGE</button>
+        <span class="small" id="an-hint">draw a box on the photo</span>
+      </div>
+      <div class="rv-list" id="rv-list"></div>
+    </div>
+    <div class="rv-nav" id="rv-nav"></div>
+  </div>
+</main>
+
+<div class="bar">
+  <div class="row">
+    <button id="btn-play" class="primary" disabled>PLAY</button>
+    <button id="btn-reset" disabled>RESET</button>
+  </div>
+  <div class="row rates" id="rates">
+    <button data-r="1" class="sm">1×</button><button data-r="4" class="sm on">4×</button><button data-r="8" class="sm">8×</button><button data-r="16" class="sm">16×</button><button data-r="32" class="sm">32×</button>
+  </div>
+  <div class="scrub"><div class="chaps" id="chaps"></div><input type="range" id="scrub" min="0" max="1000" value="0" disabled></div>
+  <div class="clock" id="clock">0:00 / 0:00</div>
+</div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="vendor/three.min.js"></script>
+<script src="vendor/lines/LineSegmentsGeometry.js"></script>
+<script src="vendor/lines/LineMaterial.js"></script>
+<script src="vendor/lines/LineSegments2.js"></script>
+<script src="app/store.js"></script>
+<script src="app/kmz.js"></script>
+<script src="app/geo.js"></script>
+<script src="app/tower3d.js"></script>
+<script src="app/camera.js"></script>
+<script src="app/coverage.js"></script>
+<script src="app/flight.js"></script>
+<script src="app/stage3d.js"></script>
+<script src="app/map.js"></script>
+<script src="app/main.js"></script>
+<script src="app/pwa.js"></script>
+</body>
+</html>
